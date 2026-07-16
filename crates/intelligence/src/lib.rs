@@ -1,5 +1,4 @@
 use ghostRbot_core::AppError;
-use std::sync::Arc;
 
 pub mod news;
 pub mod market;

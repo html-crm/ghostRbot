@@ -26,7 +26,7 @@ impl PortfolioMonitor {
         }
     }
 
-    async fn monitor_cycle(&self, orders: &mut Vec<Order>, wallet_keys: &HashMap<String, String>) {
+    async fn monitor_cycle(&self, orders: &mut Vec<Order>, _wallet_keys: &HashMap<String, String>) {
         for order in orders.iter_mut() {
             if order.status == OrderStatus::Error || order.status == OrderStatus::Sold || order.status == OrderStatus::Cancelled {
                 continue;

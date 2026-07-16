@@ -1,5 +1,3 @@
-use ghostRbot_core::AppError;
-
 #[derive(Debug, Clone, PartialEq)]
 pub enum Intent {
     News,
