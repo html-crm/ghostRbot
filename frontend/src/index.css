@@ -1,0 +1,75 @@
+@import "tailwindcss";
+
+@theme {
+  --color-surface: #1A1400;
+  --color-card: #221B00;
+  --color-card-hover: #2A2200;
+  --color-border: #3D3200;
+  --color-accent: #FFD600;
+  --color-accent-subtle: rgba(255, 214, 0, 0.08);
+  --color-accent-glow: rgba(255, 214, 0, 0.15);
+  --color-text-secondary: #A69A6B;
+  --color-text-muted: #6B603B;
+  --radius-card: 16px;
+}
+
+* {
+  min-width: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-surface);
+  color: #F5E6B8;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@media screen and (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-text-muted);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-secondary);
+}
+
+[dir="rtl"] {
+  direction: rtl;
+  text-align: right;
+}
+
+[dir="rtl"] input,
+[dir="rtl"] textarea,
+[dir="rtl"] select {
+  text-align: right;
+}
+
+[dir="rtl"] .rtl-flip {
+  transform: scaleX(-1);
+}
+
+[dir="rtl"] table th,
+[dir="rtl"] table td {
+  text-align: right;
+}
+
+[dir="rtl"] table th:first-child,
+[dir="rtl"] table td:first-child {
+  text-align: left;
+}

@@ -19,3 +19,4 @@ rand.workspace = true
 tracing.workspace = true
 reqwest.workspace = true
 anyhow.workspace = true
+mime_guess = "2"
