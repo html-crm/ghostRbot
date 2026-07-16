@@ -5,6 +5,10 @@ edition.workspace = true
 
 [dependencies]
 ghostRbot-core = { path = "../core" }
+ghostRbot-trading-engine = { path = "../trading-engine" }
+ghostRbot-notifications = { path = "../notifications" }
 tokio.workspace = true
 tracing.workspace = true
 anyhow.workspace = true
+sqlx.workspace = true
+chrono.workspace = true

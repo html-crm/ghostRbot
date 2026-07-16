@@ -178,3 +178,30 @@ pub async fn get_active_orders(pool: &PgPool) -> anyhow::Result<Vec<Order>> {
 
     Ok(orders)
 }
+
+pub async fn update_order(pool: &PgPool, order: &ghostRbot_core::Order) -> anyhow::Result<()> {
+    sqlx::query(
+        r#"UPDATE orders SET
+            buy_tx_signature = $2, buy_filled = $3,
+            sell_amount = $4, sell_tx_signature = $5, sell_filled = $6,
+            entry_price = $7, exit_price = $8, current_price = $9,
+            pnl_percent = $10, status = $11, error = $12,
+            updated_at = NOW()
+        WHERE id = $1"#,
+    )
+    .bind(order.id)
+    .bind(&order.buy_tx_signature)
+    .bind(order.buy_filled)
+    .bind(order.sell_amount)
+    .bind(&order.sell_tx_signature)
+    .bind(order.sell_filled)
+    .bind(order.entry_price)
+    .bind(order.exit_price)
+    .bind(order.current_price)
+    .bind(order.pnl_percent)
+    .bind(serde_json::to_string(&order.status).unwrap_or_default())
+    .bind(&order.error)
+    .execute(pool)
+    .await?;
+    Ok(())
+}

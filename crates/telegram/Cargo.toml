@@ -5,6 +5,7 @@ edition.workspace = true
 
 [dependencies]
 ghostRbot-core = { path = "../core" }
+ghostRbot-intelligence = { path = "../intelligence" }
 tokio.workspace = true
 reqwest.workspace = true
 serde.workspace = true

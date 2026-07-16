@@ -11,3 +11,7 @@ serde.workspace = true
 serde_json.workspace = true
 tracing.workspace = true
 anyhow.workspace = true
+chrono.workspace = true
+async-trait = "0.1"
+moka.workspace = true
+feed-rs = "2"
