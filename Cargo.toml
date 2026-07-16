@@ -1,0 +1,28 @@
+[package]
+name = "ghostRbot"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "ghostrbot"
+path = "src/main.rs"
+
+[dependencies]
+ghostRbot-core = { path = "crates/core" }
+ghostRbot-db = { path = "crates/db" }
+ghostRbot-api = { path = "crates/api" }
+ghostRbot-exchange-bot = { path = "crates/exchange-bot" }
+ghostRbot-trading-engine = { path = "crates/trading-engine" }
+ghostRbot-volume-bot = { path = "crates/volume-bot" }
+ghostRbot-market-maker = { path = "crates/market-maker" }
+ghostRbot-limit-orders = { path = "crates/limit-orders" }
+ghostRbot-discovery = { path = "crates/discovery" }
+ghostRbot-analysis = { path = "crates/analysis" }
+ghostRbot-intelligence = { path = "crates/intelligence" }
+ghostRbot-monitoring = { path = "crates/monitoring" }
+ghostRbot-notifications = { path = "crates/notifications" }
+ghostRbot-telegram = { path = "crates/telegram" }
+tokio.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+anyhow.workspace = true

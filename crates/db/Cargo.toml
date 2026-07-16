@@ -1,0 +1,14 @@
+[package]
+name = "ghostRbot-db"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+ghostRbot-core = { path = "../core" }
+sqlx.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+uuid.workspace = true
+chrono.workspace = true
+tracing.workspace = true
+anyhow.workspace = true

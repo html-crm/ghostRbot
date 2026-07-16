@@ -1,0 +1,26 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ghostrbot
+      POSTGRES_PASSWORD: ghostrbot
+      POSTGRES_DB: ghostrbot
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  bot:
+    build: .
+    ports:
+      - "8002:8002"
+    environment:
+      PORT: 8002
+      DATABASE_URL: postgresql://ghostrbot:ghostrbot@db:5432/ghostrbot
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin}
+      RUST_LOG: info
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:

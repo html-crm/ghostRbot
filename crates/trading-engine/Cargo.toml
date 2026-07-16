@@ -1,0 +1,10 @@
+[package]
+name = "ghostRbot-trading-engine"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+ghostRbot-core = { path = "../core" }
+tokio.workspace = true
+tracing.workspace = true
+anyhow.workspace = true
