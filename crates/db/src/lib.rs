@@ -3,6 +3,8 @@ use std::time::Duration;
 
 pub mod queries;
 
+static MIGRATION_SQL: &str = include_str!("../migrations/001_init.sql");
+
 pub struct Database {
     pub pool: PgPool,
 }
@@ -15,7 +17,12 @@ impl Database {
             .connect(database_url)
             .await?;
 
-        sqlx::migrate!("migrations").run(&pool).await?;
+        for statement in MIGRATION_SQL.split(';') {
+            let trimmed = statement.trim();
+            if !trimmed.is_empty() {
+                sqlx::query(trimmed).execute(&pool).await?;
+            }
+        }
 
         tracing::info!("Database connected and migrations applied");
 
