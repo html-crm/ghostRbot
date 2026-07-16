@@ -1,4 +1,4 @@
-use sqlx::PgPool;
+use sqlx::{PgPool, Row};
 use chrono::{DateTime, Utc};
 use ghostRbot_core::{User, UserRole, UserStatus, Session, Order, OrderStatus, Chain};
 
@@ -121,7 +121,7 @@ pub async fn create_order(pool: &PgPool, order: &Order) -> anyhow::Result<()> {
     .bind(&order.token_address)
     .bind(&order.token_symbol)
     .bind(&order.token_name)
-    .bind(order.token_decimals)
+    .bind(order.token_decimals as i16)
     .bind(&order.quote_mint)
     .bind(&order.pool_address)
     .bind(order.buy_amount)
