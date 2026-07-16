@@ -173,7 +173,7 @@ pub async fn get_active_orders(pool: &PgPool) -> anyhow::Result<Vec<Order>> {
             token_address: row.try_get("token_address")?,
             token_symbol: row.try_get("token_symbol")?,
             token_name: row.try_get("token_name")?,
-            token_decimals: row.try_get("token_decimals")?,
+            token_decimals: row.try_get::<i16, _>("token_decimals")? as u8,
             quote_mint: row.try_get("quote_mint")?,
             pool_address: row.try_get("pool_address")?,
             buy_amount: row.try_get("buy_amount")?,

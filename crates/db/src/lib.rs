@@ -15,7 +15,7 @@ impl Database {
             .connect(database_url)
             .await?;
 
-        sqlx::migrate!("../migrations").run(&pool).await?;
+        sqlx::migrate!("migrations").run(&pool).await?;
 
         tracing::info!("Database connected and migrations applied");
 
