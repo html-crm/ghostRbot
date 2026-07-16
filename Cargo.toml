@@ -72,3 +72,4 @@ tracing-subscriber.workspace = true
 anyhow.workspace = true
 reqwest.workspace = true
 axum.workspace = true
+dotenvy = "0.15"

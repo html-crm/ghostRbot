@@ -19,6 +19,8 @@ async fn main() -> anyhow::Result<()> {
 
     tracing::info!("Starting ghostRbot...");
 
+    let _ = dotenvy::dotenv();
+
     let config = AppConfig::from_env();
     tracing::info!("Config loaded - port: {}", config.port);
 
