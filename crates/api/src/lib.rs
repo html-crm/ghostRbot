@@ -75,7 +75,7 @@ pub fn create_router(state: Arc<AppState>) -> Router {
         .route("/api/intelligence/news", get(routes::intelligence::news))
         .route("/api/intelligence/market", get(routes::intelligence::market))
         .route("/api/intelligence/sentiment", get(routes::intelligence::sentiment))
-        .route("/api/intelligence/{module}", get(routes::intelligence:{module}))
+        .route("/api/intelligence/{module}", get(routes::intelligence::{module}))
         // Config routes
         .route("/api/config", get(routes::config::get_config).put(routes::config::update_config))
         .route("/api/fees", get(routes::config::get_fees).put(routes::config::update_fees));
