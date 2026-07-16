@@ -108,7 +108,7 @@ impl TradingEngine {
 
         order.sell_tx_signature = Some(tx_sig);
         order.sell_filled = true;
-        order.exit_price = order.current_price;
+        order.exit_price = Some(order.current_price);
         order.pnl_percent = if order.entry_price > 0.0 {
             ((order.current_price - order.entry_price) / order.entry_price) * 100.0
         } else {
