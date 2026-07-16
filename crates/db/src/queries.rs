@@ -1,8 +1,8 @@
 use sqlx::PgPool;
-use uuid::Uuid;
 use chrono::{DateTime, Utc};
 use ghostRbot_core::{User, UserRole, UserStatus, Session, Order, OrderStatus, Chain};
 
+#[derive(sqlx::FromRow)]
 pub struct UserRow {
     pub username: String,
     pub password_hash: String,
