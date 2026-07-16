@@ -1,5 +1,6 @@
 use ghostRbot_core::{AppError, LimitOrder, LimitOrderStatus, LimitOrderType};
 use ghostRbot_trading_engine::{DexClient, SellParams};
+use std::collections::HashMap;
 use std::sync::Arc;
 
 pub struct LimitOrderEngine {
@@ -13,50 +14,41 @@ impl LimitOrderEngine {
 
     pub async fn run_poll_loop(
         &self,
-        db_pool: &sqlx::PgPool,
+        orders: &mut Vec<LimitOrder>,
         solana_client: Arc<dyn DexClient>,
         bsc_client: Arc<dyn DexClient>,
-        wallet_keys: &std::collections::HashMap<String, String>,
+        wallet_keys: &HashMap<String, String>,
     ) {
         loop {
-            match self.poll_cycle(db_pool, &solana_client, &bsc_client, wallet_keys).await {
-                Ok(_) => {}
-                Err(e) => tracing::error!("Limit order poll error: {}", e),
-            }
+            self.poll_cycle(orders, &solana_client, &bsc_client, wallet_keys).await;
             tokio::time::sleep(tokio::time::Duration::from_secs(self.poll_interval_secs)).await;
         }
     }
 
     async fn poll_cycle(
         &self,
-        db_pool: &sqlx::PgPool,
+        orders: &mut Vec<LimitOrder>,
         solana_client: &Arc<dyn DexClient>,
         bsc_client: &Arc<dyn DexClient>,
-        wallet_keys: &std::collections::HashMap<String, String>,
-    ) -> Result<(), AppError> {
-        let orders = sqlx::query_as::<_, LimitOrder>(
-            "SELECT id, chain, token_address, order_type, trigger_price, amount, status, created_at FROM limit_orders WHERE status = 'pending'"
-        )
-        .fetch_all(db_pool)
-        .await
-        .map_err(|e| AppError::Database(e.to_string()))?;
+        wallet_keys: &HashMap<String, String>,
+    ) {
+        for order in orders.iter_mut() {
+            if order.status != LimitOrderStatus::Pending {
+                continue;
+            }
 
-        for order in orders {
-            if let Err(e) = self.check_and_trigger(&order, db_pool, solana_client, bsc_client, wallet_keys).await {
+            if let Err(e) = self.check_and_trigger(order, solana_client, bsc_client, wallet_keys).await {
                 tracing::error!(order_id = %order.id, error = %e, "Failed to check limit order");
             }
         }
-
-        Ok(())
     }
 
     async fn check_and_trigger(
         &self,
-        order: &LimitOrder,
-        db_pool: &sqlx::PgPool,
+        order: &mut LimitOrder,
         solana_client: &Arc<dyn DexClient>,
         bsc_client: &Arc<dyn DexClient>,
-        wallet_keys: &std::collections::HashMap<String, String>,
+        wallet_keys: &HashMap<String, String>,
     ) -> Result<(), AppError> {
         let client: &dyn DexClient = match order.chain {
             ghostRbot_core::Chain::Solana => &**solana_client,
@@ -78,7 +70,6 @@ impl LimitOrderEngine {
                 "Limit order triggered"
             );
 
-            // Find a wallet to use
             let wallet_label = wallet_keys.keys().next().ok_or_else(|| AppError::Trading("No wallet available".into()))?;
             let private_key = wallet_keys.get(wallet_label).unwrap();
 
@@ -92,19 +83,11 @@ impl LimitOrderEngine {
                 quote_mint: "So11111111111111111111111111111111111111112".to_string(),
             }).await {
                 Ok(_tx) => {
-                    sqlx::query("UPDATE limit_orders SET status = 'triggered' WHERE id = $1")
-                        .bind(order.id)
-                        .execute(db_pool)
-                        .await
-                        .map_err(|e| AppError::Database(e.to_string()))?;
-                    tracing::info!(order_id = %order.id, "Limit order executed successfully");
+                    order.status = LimitOrderStatus::Triggered;
+                    tracing::info!(order_id = %order.id, "Limit order executed");
                 }
                 Err(e) => {
-                    sqlx::query("UPDATE limit_orders SET status = 'error' WHERE id = $1")
-                        .bind(order.id)
-                        .execute(db_pool)
-                        .await
-                        .map_err(|e| AppError::Database(e.to_string()))?;
+                    order.status = LimitOrderStatus::Error;
                     tracing::error!(order_id = %order.id, error = %e, "Limit order execution failed");
                 }
             }

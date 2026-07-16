@@ -14,4 +14,3 @@ anyhow.workspace = true
 async-trait = "0.1"
 uuid.workspace = true
 chrono.workspace = true
-sqlx.workspace = true
