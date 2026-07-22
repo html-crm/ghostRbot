@@ -78,7 +78,7 @@ export default function Chat() {
           <div className="w-16 h-16 rounded-2xl bg-black/30 border border-[#3D3200] flex items-center justify-center mb-6">
             <Bot size={32} className="text-[#FFD600]" />
           </div>
-          <h1 className="text-2xl font-bold text-white mb-2">InfoDashDog AI</h1>
+          <h1 className="text-2xl font-bold text-white mb-2">ghostRbot AI</h1>
           <p className="text-text-secondary text-sm text-center max-w-md mb-8">
             {t('chat_welcome_desc')}
           </p>
@@ -106,7 +106,7 @@ export default function Chat() {
                 {msg.role === 'assistant' && (
                   <div className={`flex items-center gap-2 mb-2 ${isAr ? 'flex-row-reverse' : ''}`}>
                     <Bot size={14} className="text-[#FFD600]" />
-                    <span className="text-xs font-medium text-[#FFD600]">InfoDashDog</span>
+                    <span className="text-xs font-medium text-[#FFD600]">ghostRbot</span>
                   </div>
                 )}
                 <div className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</div>
@@ -121,7 +121,7 @@ export default function Chat() {
               <div className="bg-card border border-border rounded-2xl px-4 py-3">
                 <div className={`flex items-center gap-2 ${isAr ? 'flex-row-reverse' : ''}`}>
                   <Bot size={14} className="text-[#FFD600]" />
-                  <span className="text-xs font-medium text-[#FFD600]">InfoDashDog</span>
+                  <span className="text-xs font-medium text-[#FFD600]">ghostRbot</span>
                 </div>
                 <div className={`flex items-center gap-2 mt-2 ${isAr ? 'flex-row-reverse' : ''}`}>
                   <Loader size={14} className="text-[#FFD600 animate-spin" />

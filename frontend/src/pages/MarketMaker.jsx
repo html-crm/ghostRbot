@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Layers, Plus, Trash2, Copy, Eye, EyeOff, ExternalLink, Loader, Wallet, AlertTriangle, Send, TrendingUp } from 'lucide-react'
+import { Layers, Plus, Trash2, Copy, Eye, EyeOff, ExternalLink, Loader, Wallet, AlertTriangle, Send, TrendingUp, ChevronDown, ChevronRight } from 'lucide-react'
 import { BASE, batchCreateWallets } from '../api'
 
 const CHAINS = {
@@ -10,6 +10,54 @@ const CHAINS = {
 const explorers = {
   solana: (addr) => `https://solscan.io/account/${addr}`,
   bsc: (addr) => `https://bscscan.com/address/${addr}`,
+}
+
+function WalletItem({ w, visibleSecrets, toggleSecret, copyToClipboard, handleDelete }) {
+  const wChain = CHAINS[w.chain] || CHAINS.solana
+  return (
+    <div className={`bg-gray-800/50 rounded-lg p-3 border-l-4 ${
+      w.chain === 'bsc' ? 'border-l-yellow-500' : 'border-l-blue-500'
+    }`}>
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0 flex-1 space-y-1">
+          <div className="flex items-center gap-2">
+            <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${wChain.iconBg}`}>{wChain.label}</span>
+            <span className="text-xs font-mono text-[#FFD600]">{w.label}</span>
+            <span className="text-xs font-mono text-gray-500 truncate">{w.address?.slice(0, 8)}...{w.address?.slice(-6)}</span>
+            <button onClick={() => copyToClipboard(w.address)}
+              className="text-gray-600 hover:text-gray-300 transition-colors">
+              <Copy size={12} />
+            </button>
+            <a href={explorers[w.chain]?.(w.address) || '#'} target="_blank" rel="noreferrer"
+              className="text-gray-600 hover:text-gray-300 transition-colors" title={`View on ${wChain.label} explorer`}>
+              <ExternalLink size={12} />
+            </a>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="flex-1 bg-gray-900 rounded px-2 py-1">
+              <div className="flex items-center gap-1">
+                <span className="text-xs font-mono text-gray-600 truncate flex-1">
+                  {visibleSecrets[w.label] ? w.secret : '•'.repeat(Math.min(w.secret?.length || 40, 40))}
+                </span>
+              </div>
+            </div>
+            <button onClick={() => toggleSecret(w.label)}
+              className="text-gray-600 hover:text-gray-300 transition-colors" title={visibleSecrets[w.label] ? 'Hide' : 'Show'}>
+              {visibleSecrets[w.label] ? <EyeOff size={14} /> : <Eye size={14} />}
+            </button>
+            <button onClick={() => copyToClipboard(w.secret)}
+              className="text-gray-600 hover:text-gray-300 transition-colors" title="Copy seed">
+              <Copy size={14} />
+            </button>
+            <button onClick={() => handleDelete(w.label)}
+              className="text-gray-600 hover:text-red-400 transition-colors" title="Delete wallet">
+              <Trash2 size={14} />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export default function MarketMaker() {
@@ -24,6 +72,8 @@ export default function MarketMaker() {
   const [liqAmount, setLiqAmount] = useState('0.1')
   const [seedModal, setSeedModal] = useState(null)
   const [seedAcknowledged, setSeedAcknowledged] = useState(false)
+  const [activeTab, setActiveTab] = useState('trading')
+  const [showWallets, setShowWallets] = useState(false)
 
   const chain = CHAINS[genChain]
 
@@ -184,7 +234,7 @@ export default function MarketMaker() {
               <span className="text-sm text-gray-400">I have saved all seed phrases securely</span>
             </label>
             <button onClick={dismissSeedModal} disabled={!seedAcknowledged}
-              className="w-full bg-[#FFD600] hover:bg-[#E6C000] disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium py-2.5 rounded-lg transition-colors">
+              className="w-full bg-[#FFD600] hover:bg-[#E6C000] disabled:opacity-40 disabled:cursor-not-allowed text-black font-medium py-2.5 rounded-lg transition-colors">
               Close
             </button>
           </div>
@@ -197,6 +247,35 @@ export default function MarketMaker() {
           <h1 className="text-2xl font-bold">Market Maker</h1>
           <p className="text-gray-500 text-sm">Generate wallets and manage liquidity for your tokens</p>
         </div>
+      </div>
+
+      {/* Tab Navigation */}
+      <div className="flex gap-1 bg-gray-900 rounded-xl border border-gray-800 p-1">
+        <button
+          onClick={() => setActiveTab('trading')}
+          className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+            activeTab === 'trading'
+              ? 'bg-[#FFD600] text-black'
+              : 'text-gray-400 hover:text-gray-200'
+          }`}
+        >
+          <TrendingUp size={16} className="inline mr-2" />
+          Trading
+        </button>
+        <button
+          onClick={() => setActiveTab('wallets')}
+          className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+            activeTab === 'wallets'
+              ? 'bg-[#FFD600] text-black'
+              : 'text-gray-400 hover:text-gray-200'
+          }`}
+        >
+          <Wallet size={16} className="inline mr-2" />
+          Wallets
+          {wallets.length > 0 && (
+            <span className="ml-2 px-1.5 py-0.5 text-xs bg-gray-700 rounded-full">{wallets.length}</span>
+          )}
+        </button>
       </div>
 
       {message && (
@@ -215,15 +294,119 @@ export default function MarketMaker() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left: Wallet Generation */}
-        <div className="bg-gray-900 rounded-xl border border-gray-800 p-6">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Wallet size={18} className="text-[#FFD600]" /> Generate Wallets
-          </h2>
-          <div className="space-y-4">
-            {/* Chain selector */}
-            <div>
+      {/* Trading Tab */}
+      {activeTab === 'trading' && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Left: Wallet Generation */}
+          <div className="bg-gray-900 rounded-xl border border-gray-800 p-6">
+            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <Wallet size={18} className="text-[#FFD600]" /> Generate Wallets
+            </h2>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm text-gray-400 block mb-2">Network</label>
+                <div className="flex gap-2">
+                  {Object.entries(CHAINS).map(([key, c]) => (
+                    <button key={key} onClick={() => setGenChain(key)}
+                      className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors border ${
+                        genChain === key
+                          ? `${c.btnBg} border-${c.color}-500 text-white`
+                          : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600'
+                      }`}>
+                      {c.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-sm text-gray-400 block mb-1">Count</label>
+                  <input type="number" min="1" max="100" value={genCount} onChange={(e) => setGenCount(e.target.value)}
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-[#FFD600]" />
+                </div>
+                <div>
+                  <label className="text-sm text-gray-400 block mb-1">Label Prefix</label>
+                  <input type="text" value={genPrefix} onChange={(e) => setGenPrefix(e.target.value)}
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-[#FFD600]"
+                    placeholder="mm" />
+                </div>
+              </div>
+              <button onClick={handleGenerate} disabled={loading}
+                className={`w-full disabled:opacity-50 text-white font-medium py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 ${
+                  genChain === 'solana' ? 'bg-blue-500 hover:bg-blue-600' : 'bg-yellow-500 hover:bg-yellow-600'
+                }`}>
+                {loading ? <Loader size={16} className="animate-spin" /> : <Plus size={18} />}
+                {loading ? 'Working...' : `Generate ${chain.label} Wallets`}
+              </button>
+              {mmWallets.length > 0 && (
+                <button onClick={handleFund} disabled={loading}
+                  className="w-full disabled:opacity-50 text-white font-medium py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 bg-[#FFD600] hover:bg-[#E6C000]">
+                  {loading ? <Loader size={16} className="animate-spin" /> : <Send size={18} />}
+                  {loading ? 'Working...' : `Fund ${mmWallets.length} Wallet(s) with ${liqAmount || '0.01'} ${chain.currency}`}
+                </button>
+              )}
+            </div>
+
+            {mmWallets.length > 0 && (
+              <div className="mt-6 space-y-2 max-h-96 overflow-y-auto">
+                <p className="text-sm text-gray-500 mb-2">{mmWallets.length} wallet(s)</p>
+                {mmWallets.map(w => {
+                  const wChain = CHAINS[w.chain] || CHAINS.solana
+                  return (
+                    <div key={w.label} className={`bg-gray-800/50 rounded-lg p-3 border-l-4 ${
+                      w.chain === 'bsc' ? 'border-l-yellow-500' : 'border-l-blue-500'
+                    }`}>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1 space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${wChain.iconBg}`}>{wChain.label}</span>
+                            <span className="text-xs font-mono text-[#FFD600]">{w.label}</span>
+                            <span className="text-xs font-mono text-gray-500 truncate">{w.address?.slice(0, 8)}...{w.address?.slice(-6)}</span>
+                            <button onClick={() => copyToClipboard(w.address)}
+                              className="text-gray-600 hover:text-gray-300 transition-colors">
+                              <Copy size={12} />
+                            </button>
+                            <a href={explorers[w.chain]?.(w.address) || '#'} target="_blank" rel="noreferrer"
+                              className="text-gray-600 hover:text-gray-300 transition-colors" title={`View on ${wChain.label} explorer`}>
+                              <ExternalLink size={12} />
+                            </a>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="flex-1 bg-gray-900 rounded px-2 py-1">
+                              <div className="flex items-center gap-1">
+                                <span className="text-xs font-mono text-gray-600 truncate flex-1">
+                                  {visibleSecrets[w.label] ? w.secret : '•'.repeat(Math.min(w.secret?.length || 40, 40))}
+                                </span>
+                              </div>
+                            </div>
+                            <button onClick={() => toggleSecret(w.label)}
+                              className="text-gray-600 hover:text-gray-300 transition-colors" title={visibleSecrets[w.label] ? 'Hide' : 'Show'}>
+                              {visibleSecrets[w.label] ? <EyeOff size={14} /> : <Eye size={14} />}
+                            </button>
+                            <button onClick={() => copyToClipboard(w.secret)}
+                              className="text-gray-600 hover:text-gray-300 transition-colors" title="Copy seed">
+                              <Copy size={14} />
+                            </button>
+                            <button onClick={() => handleDelete(w.label)}
+                              className="text-gray-600 hover:text-red-400 transition-colors" title="Delete wallet">
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Right: Liquidity Creation */}
+          <div className="bg-gray-900 rounded-xl border border-gray-800 p-6">
+            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <Layers size={18} className="text-[#FFD600]" /> Create Liquidity
+            </h2>
+            <div className="mb-4">
               <label className="text-sm text-gray-400 block mb-2">Network</label>
               <div className="flex gap-2">
                 {Object.entries(CHAINS).map(([key, c]) => (
@@ -238,166 +421,174 @@ export default function MarketMaker() {
                 ))}
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-4">
               <div>
-                <label className="text-sm text-gray-400 block mb-1">Count</label>
-                <input type="number" min="1" max="100" value={genCount} onChange={(e) => setGenCount(e.target.value)}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-[#FFD600]" />
+                <label className="text-sm text-gray-400 block mb-1">Token Address</label>
+                <input type="text" value={tokenAddress} onChange={(e) => setTokenAddress(e.target.value)}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-sm font-mono focus:outline-none focus:border-[#FFD600]"
+                  placeholder="JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN" />
               </div>
               <div>
-                <label className="text-sm text-gray-400 block mb-1">Label Prefix</label>
-                <input type="text" value={genPrefix} onChange={(e) => setGenPrefix(e.target.value)}
+                <label className="text-sm text-gray-400 block mb-1">{chain.currency} per Wallet</label>
+                <input type="number" step="any" value={liqAmount} onChange={(e) => setLiqAmount(e.target.value)}
                   className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-[#FFD600]"
-                  placeholder="mm" />
+                  placeholder="0.1" />
               </div>
-            </div>
-            <button onClick={handleGenerate} disabled={loading}
-              className={`w-full disabled:opacity-50 text-white font-medium py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 ${
-                genChain === 'solana' ? 'bg-blue-500 hover:bg-blue-600' : 'bg-yellow-500 hover:bg-yellow-600'
-              }`}>
-              {loading ? <Loader size={16} className="animate-spin" /> : <Plus size={18} />}
-              {loading ? 'Working...' : `Generate ${chain.label} Wallets`}
-            </button>
-            {mmWallets.length > 0 && (
-              <button onClick={handleFund} disabled={loading}
-                className="w-full disabled:opacity-50 text-white font-medium py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 bg-[#FFD600] hover:bg-[#E6C000]">
-                {loading ? <Loader size={16} className="animate-spin" /> : <Send size={18} />}
-                {loading ? 'Working...' : `Fund ${mmWallets.length} Wallet(s) with ${liqAmount || '0.01'} ${chain.currency}`}
+              <div className="bg-gray-800/50 rounded-lg p-4 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-400">Wallets to use</span>
+                  <span className="text-gray-200 font-medium">{mmWallets.length}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-400">Total {chain.currency} needed</span>
+                  <span className="text-gray-200 font-medium">{(mmWallets.length * parseFloat(liqAmount || 0)).toFixed(4)} {chain.currency}</span>
+                </div>
+              </div>
+              <button onClick={handleCreateLiquidity} disabled={loading || !tokenAddress || mmWallets.length === 0}
+                className={`w-full disabled:opacity-50 text-white font-medium py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 ${
+                  genChain === 'solana' ? 'bg-blue-500 hover:bg-blue-600' : 'bg-yellow-500 hover:bg-yellow-600'
+                }`}>
+                {loading ? <Loader size={16} className="animate-spin" /> : <TrendingUp size={18} />}
+                {loading ? 'Working...' : `Buy Token from ${mmWallets.length} Wallet(s)`}
               </button>
-            )}
+              <p className="text-xs text-gray-600 text-center">
+                Each wallet buys the token, creating buy pressure and trading volume.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Wallets Tab */}
+      {activeTab === 'wallets' && (
+        <div className="space-y-4">
+          <div className="bg-gray-900 rounded-xl border border-gray-800 p-6">
+            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <Wallet size={18} className="text-[#FFD600]" /> Generate Wallets
+            </h2>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm text-gray-400 block mb-2">Network</label>
+                <div className="flex gap-2">
+                  {Object.entries(CHAINS).map(([key, c]) => (
+                    <button key={key} onClick={() => setGenChain(key)}
+                      className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors border ${
+                        genChain === key
+                          ? `${c.btnBg} border-${c.color}-500 text-white`
+                          : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600'
+                      }`}>
+                      {c.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-sm text-gray-400 block mb-1">Count</label>
+                  <input type="number" min="1" max="100" value={genCount} onChange={(e) => setGenCount(e.target.value)}
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-[#FFD600]" />
+                </div>
+                <div>
+                  <label className="text-sm text-gray-400 block mb-1">Label Prefix</label>
+                  <input type="text" value={genPrefix} onChange={(e) => setGenPrefix(e.target.value)}
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-[#FFD600]"
+                    placeholder="mm" />
+                </div>
+              </div>
+              <button onClick={handleGenerate} disabled={loading}
+                className={`w-full disabled:opacity-50 text-white font-medium py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 ${
+                  genChain === 'solana' ? 'bg-blue-500 hover:bg-blue-600' : 'bg-yellow-500 hover:bg-yellow-600'
+                }`}>
+                {loading ? <Loader size={16} className="animate-spin" /> : <Plus size={18} />}
+                {loading ? 'Working...' : `Generate ${chain.label} Wallets`}
+              </button>
+              {mmWallets.length > 0 && (
+                <button onClick={handleFund} disabled={loading}
+                  className="w-full disabled:opacity-50 text-white font-medium py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 bg-[#FFD600] hover:bg-[#E6C000]">
+                  {loading ? <Loader size={16} className="animate-spin" /> : <Send size={18} />}
+                  {loading ? 'Working...' : `Fund ${mmWallets.length} Wallet(s) with ${liqAmount || '0.01'} ${chain.currency}`}
+                </button>
+              )}
+            </div>
           </div>
 
+          {/* Wallet List - Collapsible */}
           {mmWallets.length > 0 && (
-            <div className="mt-6 space-y-2 max-h-96 overflow-y-auto">
-              <p className="text-sm text-gray-500 mb-2">{mmWallets.length} wallet(s)</p>
-              {mmWallets.map(w => {
-                const wChain = CHAINS[w.chain] || CHAINS.solana
-                return (
-                  <div key={w.label} className={`bg-gray-800/50 rounded-lg p-3 border-l-4 ${
-                    w.chain === 'bsc' ? 'border-l-yellow-500' : 'border-l-blue-500'
-                  }`}>
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0 flex-1 space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${wChain.iconBg}`}>{wChain.label}</span>
-                          <span className="text-xs font-mono text-[#FFD600]">{w.label}</span>
-                          <span className="text-xs font-mono text-gray-500 truncate">{w.address?.slice(0, 8)}...{w.address?.slice(-6)}</span>
-                          <button onClick={() => copyToClipboard(w.address)}
-                            className="text-gray-600 hover:text-gray-300 transition-colors">
-                            <Copy size={12} />
-                          </button>
-                          <a href={explorers[w.chain]?.(w.address) || '#'} target="_blank" rel="noreferrer"
-                            className="text-gray-600 hover:text-gray-300 transition-colors" title={`View on ${wChain.label} explorer`}>
-                            <ExternalLink size={12} />
-                          </a>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="flex-1 bg-gray-900 rounded px-2 py-1">
-                            <div className="flex items-center gap-1">
-                              <span className="text-xs font-mono text-gray-600 truncate flex-1">
-                                {visibleSecrets[w.label] ? w.secret : '•'.repeat(Math.min(w.secret?.length || 40, 40))}
-                              </span>
-                            </div>
-                          </div>
-                          <button onClick={() => toggleSecret(w.label)}
-                            className="text-gray-600 hover:text-gray-300 transition-colors" title={visibleSecrets[w.label] ? 'Hide' : 'Show'}>
-                            {visibleSecrets[w.label] ? <EyeOff size={14} /> : <Eye size={14} />}
-                          </button>
-                          <button onClick={() => copyToClipboard(w.secret)}
-                            className="text-gray-600 hover:text-gray-300 transition-colors" title="Copy seed">
-                            <Copy size={14} />
-                          </button>
-                          <button onClick={() => handleDelete(w.label)}
-                            className="text-gray-600 hover:text-red-400 transition-colors" title="Delete wallet">
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
+            <div className="bg-gray-900 rounded-xl border border-gray-800">
+              <button
+                onClick={() => setShowWallets(!showWallets)}
+                className="w-full p-4 flex items-center justify-between hover:bg-gray-800/50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <Wallet size={18} className="text-[#FFD600]" />
+                  <span className="font-semibold">{mmWallets.length} MM Wallet(s)</span>
+                  <div className="flex gap-2">
+                    <span className="text-xs px-2 py-1 rounded bg-blue-500/20 text-blue-400">
+                      {mmWallets.filter(w => w.chain === 'solana').length} SOL
+                    </span>
+                    <span className="text-xs px-2 py-1 rounded bg-yellow-500/20 text-yellow-400">
+                      {mmWallets.filter(w => w.chain === 'bsc').length} BSC
+                    </span>
+                  </div>
+                </div>
+                {showWallets ? <ChevronDown size={18} className="text-gray-400" /> : <ChevronRight size={18} className="text-gray-400" />}
+              </button>
+
+              {showWallets && (
+                <div className="px-4 pb-4 space-y-4">
+                  {mmWallets.filter(w => w.chain === 'solana').length > 0 && (
+                    <div>
+                      <h3 className="text-sm font-medium text-blue-400 mb-2 flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+                        Solana Wallets
+                      </h3>
+                      <div className="space-y-2">
+                        {mmWallets.filter(w => w.chain === 'solana').map(w => (
+                          <WalletItem key={w.label} w={w} visibleSecrets={visibleSecrets} toggleSecret={toggleSecret} copyToClipboard={copyToClipboard} handleDelete={handleDelete} />
+                        ))}
                       </div>
                     </div>
-                  </div>
-                )
-              })}
+                  )}
+
+                  {mmWallets.filter(w => w.chain === 'bsc').length > 0 && (
+                    <div>
+                      <h3 className="text-sm font-medium text-yellow-400 mb-2 flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
+                        BSC Wallets
+                      </h3>
+                      <div className="space-y-2">
+                        {mmWallets.filter(w => w.chain === 'bsc').map(w => (
+                          <WalletItem key={w.label} w={w} visibleSecrets={visibleSecrets} toggleSecret={toggleSecret} copyToClipboard={copyToClipboard} handleDelete={handleDelete} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
-        </div>
 
-        {/* Right: Liquidity Creation */}
-        <div className="bg-gray-900 rounded-xl border border-gray-800 p-6">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Layers size={18} className="text-[#FFD600]" /> Create Liquidity
-          </h2>
-          {/* Chain selector for liquidity */}
-          <div className="mb-4">
-            <label className="text-sm text-gray-400 block mb-2">Network</label>
-            <div className="flex gap-2">
-              {Object.entries(CHAINS).map(([key, c]) => (
-                <button key={key} onClick={() => setGenChain(key)}
-                  className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors border ${
-                    genChain === key
-                      ? `${c.btnBg} border-${c.color}-500 text-white`
-                      : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600'
-                  }`}>
-                  {c.label}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm text-gray-400 block mb-1">Token Address</label>
-              <input type="text" value={tokenAddress} onChange={(e) => setTokenAddress(e.target.value)}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-sm font-mono focus:outline-none focus:border-[#FFD600]"
-                placeholder="JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN" />
-            </div>
-            <div>
-              <label className="text-sm text-gray-400 block mb-1">{chain.currency} per Wallet</label>
-              <input type="number" step="any" value={liqAmount} onChange={(e) => setLiqAmount(e.target.value)}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-[#FFD600]"
-                placeholder="0.1" />
-            </div>
-            <div className="bg-gray-800/50 rounded-lg p-4 space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-400">Wallets to use</span>
-                <span className="text-gray-200 font-medium">{mmWallets.length}</span>
+          {/* Stats */}
+          {mmWallets.length > 0 && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="bg-gray-900 rounded-xl border border-gray-800 p-4">
+                <p className="text-gray-500 text-xs uppercase tracking-wide">MM Wallets</p>
+                <p className="text-xl font-bold mt-1">{mmWallets.length}</p>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-400">Total {chain.currency} needed</span>
-                <span className="text-gray-200 font-medium">{(mmWallets.length * parseFloat(liqAmount || 0)).toFixed(4)} {chain.currency}</span>
+              <div className="bg-gray-900 rounded-xl border border-gray-800 p-4">
+                <p className="text-gray-500 text-xs uppercase tracking-wide">Total Wallets</p>
+                <p className="text-xl font-bold mt-1">{wallets.length}</p>
+              </div>
+              <div className="bg-gray-900 rounded-xl border border-gray-800 p-4">
+                <p className="text-gray-500 text-xs uppercase tracking-wide">Solana</p>
+                <p className="text-xl font-bold mt-1 text-blue-400">{wallets.filter(w => w.chain === 'solana').length}</p>
+              </div>
+              <div className="bg-gray-900 rounded-xl border border-gray-800 p-4">
+                <p className="text-gray-500 text-xs uppercase tracking-wide">BSC</p>
+                <p className="text-xl font-bold mt-1 text-yellow-400">{wallets.filter(w => w.chain === 'bsc').length}</p>
               </div>
             </div>
-            <button onClick={handleCreateLiquidity} disabled={loading || !tokenAddress || mmWallets.length === 0}
-              className={`w-full disabled:opacity-50 text-white font-medium py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 ${
-                genChain === 'solana' ? 'bg-blue-500 hover:bg-blue-600' : 'bg-yellow-500 hover:bg-yellow-600'
-              }`}>
-              {loading ? <Loader size={16} className="animate-spin" /> : <TrendingUp size={18} />}
-              {loading ? 'Working...' : `Buy Token from ${mmWallets.length} Wallet(s)`}
-            </button>
-            <p className="text-xs text-gray-600 text-center">
-              Each wallet buys the token, creating buy pressure and trading volume.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Stats */}
-      {mmWallets.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div className="bg-gray-900 rounded-xl border border-gray-800 p-4">
-            <p className="text-gray-500 text-xs uppercase tracking-wide">MM Wallets</p>
-            <p className="text-xl font-bold mt-1">{mmWallets.length}</p>
-          </div>
-          <div className="bg-gray-900 rounded-xl border border-gray-800 p-4">
-            <p className="text-gray-500 text-xs uppercase tracking-wide">Total Wallets</p>
-            <p className="text-xl font-bold mt-1">{wallets.length}</p>
-          </div>
-          <div className="bg-gray-900 rounded-xl border border-gray-800 p-4">
-            <p className="text-gray-500 text-xs uppercase tracking-wide">Solana</p>
-            <p className="text-xl font-bold mt-1 text-blue-400">{wallets.filter(w => w.chain === 'solana').length}</p>
-          </div>
-          <div className="bg-gray-900 rounded-xl border border-gray-800 p-4">
-            <p className="text-gray-500 text-xs uppercase tracking-wide">BSC</p>
-            <p className="text-xl font-bold mt-1 text-yellow-400">{wallets.filter(w => w.chain === 'bsc').length}</p>
-          </div>
+          )}
         </div>
       )}
     </div>

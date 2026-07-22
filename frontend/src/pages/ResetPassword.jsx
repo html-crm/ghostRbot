@@ -45,7 +45,7 @@ export default function ResetPassword() {
     <div className="min-h-screen bg-gray-950 flex items-center justify-center">
       <div className="bg-gray-900 p-8 rounded-2xl border border-gray-800 w-full max-w-sm">
         <div className="text-center mb-6">
-          <img src="https://i.ibb.co/XZ8JJ6vp/Chat-GPT-Image-Jun-25-2026-09-13-45-PM.png" alt="DanialooBot" className="w-12 h-12 rounded-xl mx-auto mb-3 object-cover" />
+          <img src="https://i.ibb.co/XZ8JJ6vp/Chat-GPT-Image-Jun-25-2026-09-13-45-PM.png" alt="ghostRbot" className="w-12 h-12 rounded-xl mx-auto mb-3 object-cover" />
           <h1 className="text-2xl font-bold text-[#FFD600]">Reset Password</h1>
         </div>
         {success ? (

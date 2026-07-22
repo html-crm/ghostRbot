@@ -41,7 +41,7 @@ export default function AdminLogin({ onLogin }) {
           <div className="w-12 h-12 rounded-xl bg-[#FFD600]/20 flex items-center justify-center mx-auto mb-3">
             <span className="text-[#FFD600] font-bold text-lg">ID</span>
           </div>
-          <h1 className="text-2xl font-bold text-[#FFD600]">InfoDashDog</h1>
+          <h1 className="text-2xl font-bold text-[#FFD600]">ghostRbot</h1>
           <p className="text-gray-500 text-sm mt-1">{t('admin_panel')}</p>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
