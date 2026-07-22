@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
-  Bot, MessageSquare, LayoutDashboard, Repeat, Layers, TrendingUp,
-  Wallet, LogOut, LogIn, Menu, X, ChevronLeft, User, KeyRound, Globe,
+  Bot, LayoutDashboard, Repeat, Layers, TrendingUp,
+  Wallet, LogOut, LogIn, Menu, X, ChevronLeft, User, KeyRound, Globe, ClipboardList,
 } from 'lucide-react'
 
 export default function Layout({ onLogout, role }) {
@@ -44,8 +44,8 @@ export default function Layout({ onLogout, role }) {
             </div>
             {!collapsed && (
               <div className={isAr ? 'text-right' : ''}>
-                <h1 className="text-sm font-bold text-white leading-tight"><span className="text-[#FFD600]">InfoDash</span>Dog</h1>
-                <p className="text-[9px] text-text-muted leading-tight">{t('ai_intelligence')}</p>
+                <h1 className="text-sm font-bold text-white leading-tight"><span className="text-[#FFD600]">ghost</span>Rbot</h1>
+                <p className="text-[9px] text-text-muted leading-tight">Trading Bot</p>
               </div>
             )}
           </div>
@@ -55,13 +55,6 @@ export default function Layout({ onLogout, role }) {
         </div>
 
         <nav className="flex-1 py-2 px-1.5 space-y-0.5 overflow-y-auto">
-          <NavLink to="/chat" onClick={closeMobile}
-            className={({ isActive }) => `flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${collapsed ? 'justify-center px-0' : ''} ${isAr ? 'flex-row-reverse' : ''} ${isActive ? 'bg-[#FFD600]/10 text-[#FFD600] font-medium' : 'text-gray-400 hover:text-gray-200 hover:bg-white/[0.04]'}`}
-            title={collapsed ? t('ai_chat') : undefined}>
-            <MessageSquare size={17} className="shrink-0" />
-            {!collapsed && <span>{t('ai_chat')}</span>}
-          </NavLink>
-
           {token && (
             <NavLink to="/dashboard" onClick={closeMobile}
               className={({ isActive }) => `flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${collapsed ? 'justify-center px-0' : ''} ${isAr ? 'flex-row-reverse' : ''} ${isActive ? 'bg-[#FFD600]/10 text-[#FFD600] font-medium' : 'text-gray-400 hover:text-gray-200 hover:bg-white/[0.04]'}`}
@@ -77,9 +70,10 @@ export default function Layout({ onLogout, role }) {
                 {collapsed ? '' : t('trading')}
               </div>
               {[
-                { to: '/volume', label: t('volume_bot'), icon: Repeat },
                 { to: '/market-maker', label: t('market_maker'), icon: Layers },
+                { to: '/volume', label: t('volume_bot'), icon: Repeat },
                 { to: '/exchange', label: t('exchange_bot'), icon: TrendingUp },
+                { to: '/orders', label: t('orders') || 'Orders', icon: ClipboardList },
               ].map(({ to, label, icon: Icon }) => (
                 <NavLink key={to} to={to} onClick={closeMobile}
                   className={({ isActive }) => `flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${collapsed ? 'justify-center px-0' : ''} ${isAr ? 'flex-row-reverse' : ''} ${isActive ? 'bg-[#FFD600]/10 text-[#FFD600] font-medium' : 'text-gray-400 hover:text-gray-200 hover:bg-white/[0.04]'}`}

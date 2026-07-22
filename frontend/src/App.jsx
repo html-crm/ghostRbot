@@ -3,13 +3,12 @@ import { useState, useEffect, useCallback } from 'react'
 import Layout from './components/Layout'
 import Login from './pages/Login'
 import AdminLogin from './pages/AdminLogin'
-import Landing from './pages/Landing'
-import Chat from './pages/Chat'
 import Dashboard from './pages/Dashboard'
 import VolumeBot from './pages/VolumeBot'
 import MarketMaker from './pages/MarketMaker'
 import ExchangeBot from './pages/ExchangeBot'
 import Wallets from './pages/Wallets'
+import Orders from './pages/Orders'
 import Users from './pages/Users'
 import ChangePassword from './pages/ChangePassword'
 import ResetPassword from './pages/ResetPassword'
@@ -45,9 +44,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route element={<Layout onLogout={logout} role={role} />}>
-          <Route path="/" element={<Chat />} />
-          <Route path="/chat" element={<Chat />} />
-          <Route path="/landing" element={<Landing />} />
+          <Route path="/" element={token ? <Navigate to="/market-maker" /> : <Login onLogin={handleLogin} />} />
           <Route path="/login" element={<Login onLogin={handleLogin} />} />
           <Route path="/admin" element={role === 'admin' ? <Users /> : <AdminLogin onLogin={handleLogin} />} />
           <Route path="/reset-password" element={<ResetPassword />} />
@@ -58,6 +55,7 @@ function App() {
               <Route path="/market-maker" element={<AdminGate role={role}><MarketMaker /></AdminGate>} />
               <Route path="/exchange" element={<AdminGate role={role}><ExchangeBot /></AdminGate>} />
               <Route path="/wallets" element={<AdminGate role={role}><Wallets /></AdminGate>} />
+              <Route path="/orders" element={<AdminGate role={role}><Orders /></AdminGate>} />
               <Route path="/change-password" element={<AdminGate role={role}><ChangePassword /></AdminGate>} />
             </>
           )}
